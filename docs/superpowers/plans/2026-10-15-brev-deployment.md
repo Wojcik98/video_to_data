@@ -55,15 +55,26 @@ Files: `tools/brev/{images,artifacts}.py`, tests, `tools/e2e/{cli,stages}.py`.
 
 Files: root `justfile`, `README.md`, `docs/brev_deployment.md`, CI.
 
-- [ ] Add argument-preserving aliases and a guide for both client and remote use.
-- [ ] Cover tmux, second clients, Git auth, HF recovery, and optional streaming.
-- [ ] Validate aliases with `just --list`, dry runs, and fake external commands.
-- [ ] Run tests, lint, formatting, Bash syntax, and root hygiene checks.
-- [ ] Review the complete change with a fresh reviewer. Fix material findings.
-- [ ] Commit with `-s`; report exact checks and live checks that were not run.
+- [x] Add argument-preserving aliases and a guide for both client and remote use.
+- [x] Cover tmux, second clients, Git auth, HF recovery, and optional streaming.
+- [x] Validate aliases with `just --list`, dry runs, and fake external commands.
+- [x] Run tests, lint, formatting, Bash syntax, and root hygiene checks.
+- [x] Review the complete change with a fresh reviewer. Fix material findings.
+- [x] Commit with `-s`; report exact checks and live checks that were not run.
 
 ## Execution record
 
 - Approved scope is recorded in the linked design. The user gave final approval
   and requested implementation and commits on `main`.
 - No cloud VM will be created during implementation.
+- Brev 0.6.335 source inspection showed that explicit `--type` input drops disk
+  size. The helper now passes selected search JSON. A live read-only creation
+  preview confirmed the selected Nebius type with 500 GB disk.
+- Fresh review found two material issues: an interrupted rsync transfer could
+  be skipped on retry, and reuse did not verify disk capacity. Both were
+  reproduced with failing tests and fixed. There were no deferred findings.
+- Final CPU verification: 92 pytest tests and 40 subtests passed, including a
+  real local tmux job and an interrupted local rsync transfer. Scoped hooks,
+  Ruff checks, formatting, Bash syntax, and repository hygiene checks pass.
+- Cloud provisioning, GPU builds, real registry/HF uploads, provider stop/resume,
+  and WebRTC streaming were not run.

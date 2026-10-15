@@ -12,6 +12,7 @@
 
 - [Overview](#overview)
 - [E2E workflow](#e2e-workflow)
+- [Brev remote workspace](docs/brev_deployment.md)
 - [Packages](#packages)
 - [Prerequisites](#prerequisites)
 - [Quickstart](#quickstart)
@@ -50,6 +51,11 @@ been verified on NVIDIA L40 and L40S GPUs. Follow the [E2E workflow guide](docs/
 for the runnable tissue-box demo, setup requirements, acceptance gates, and resume behavior.
 
 ## Packages
+
+For a persistent L40S workspace, SSH and VS Code access, detached jobs, image
+storage, and HF result backups, follow the [Brev deployment guide](docs/brev_deployment.md).
+Run `just` at the repository root to list command aliases. `just e2e ...` forwards
+arguments to `run_e2e.sh`; package launchers remain the source of run behavior.
 
 | Package | Role | Runtime |
 |---|---|---|

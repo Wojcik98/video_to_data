@@ -1,0 +1,36 @@
+repos:
+  - repo: local
+    hooks:
+      - id: brev-python-check
+        name: Check Brev and E2E Python
+        entry: ruff check --select E4,E7,E9,F,I
+        language: system
+        files: ^tools/(brev/.*\.py|e2e/(cli|stages|tests/test_e2e)\.py)$
+      - id: brev-python-format
+        name: Check Brev and E2E format
+        entry: ruff format --check
+        language: system
+        files: ^tools/(brev/.*\.py|e2e/(cli|stages|tests/test_e2e)\.py)$
+      - id: brev-shell
+        name: Check launch script syntax
+        entry: bash -c 'for script in "$@"; do bash -n "$script" || exit; done' --
+        language: system
+        files: ^(run_e2e\.sh|tools/brev/.*\.sh)$
+      - id: root-tests
+        name: Run root CPU tests
+        entry: just test
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: root-files
+        name: Check root file boundaries
+        entry: python3 .github/scripts/check_root_files.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: agent-context
+        name: Check agent context files
+        entry: python3 .github/scripts/agent_context_check.py
+        language: system
+        pass_filenames: false
+        always_run: true

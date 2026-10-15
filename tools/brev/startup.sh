@@ -8,6 +8,6 @@ else
     SUDO=(sudo -n)
 fi
 "${SUDO[@]}" apt-get update
-"${SUDO[@]}" apt-get install -y git git-lfs gh rsync tmux python3-venv curl ca-certificates vim
+"${SUDO[@]}" apt-get install -y git git-lfs gh rsync tmux python3-venv curl ca-certificates vim ffmpeg
 # Create user-owned workspace directories later, through the SSH user.
 echo "Base tools are ready. Transfer the repository and run tools/brev/bootstrap.sh."

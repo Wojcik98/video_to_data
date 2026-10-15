@@ -10,6 +10,7 @@ export PATH="$HOME/.local/bin:$PATH"
 nvidia-smi
 docker info >/dev/null
 git lfs install --local
+git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init --recursive
 git lfs pull
 if [ ! -x "$STATE_DIR/venv/bin/python" ]; then
     python3 -m venv "$STATE_DIR/venv"
@@ -18,11 +19,7 @@ export VIRTUAL_ENV="$STATE_DIR/venv"
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 export PYTHON="$VIRTUAL_ENV/bin/python"
 "$PYTHON" -m pip install --upgrade pip
-"$PYTHON" -m pip install huggingface_hub==2.2.0 pre-commit uv
-if ! command -v just >/dev/null; then
-    # Install a fixed release through the remote Python environment.
-    "$PYTHON" -m pip install rust-just==1.36.0
-fi
+"$PYTHON" -m pip install huggingface_hub==2.2.0 rust-just==1.36.0 ruff==0.17.0 pre-commit uv
 printf 'export VIRTUAL_ENV=%q\nexport PYTHON=%q\nexport PATH=%q:"$PATH"\n' \
     "$VIRTUAL_ENV" "$PYTHON" "$VIRTUAL_ENV/bin:$HOME/.local/bin" > "$STATE_DIR/env.sh"
 bash reconstruction/scripts/install_ego_reconstruction_packages.sh

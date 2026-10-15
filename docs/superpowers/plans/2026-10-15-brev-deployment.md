@@ -34,11 +34,11 @@ commands. Keep the existing package launchers as the source of run behavior.
 
 Files: `tools/brev/{common,cli,jobs}.py`, `startup.sh`, `bootstrap.sh`, tests.
 
-- [ ] Write failing tests for lifecycle decisions, paths, Git settings, and jobs.
-- [ ] Run `python3 -m unittest discover -s tools/brev/tests -v`; expect failures.
-- [ ] Add CLI control, Git bundle transfer, guarded file transfer, and tmux jobs.
-- [ ] Add startup and setup scripts with logged, repeatable steps.
-- [ ] Run the tests and Bash syntax checks; expect success. Commit with `-s`.
+- [x] Write failing tests for lifecycle decisions, paths, Git settings, and jobs.
+- [x] Run `python3 -m unittest discover -s tools/brev/tests -v`; observed 5 failures.
+- [x] Add CLI control, Git bundle transfer, guarded file transfer, and tmux jobs.
+- [x] Add startup and setup scripts with logged, repeatable steps.
+- [x] Run 10 new tests, 63 root E2E tests, lint, and Bash syntax checks; all pass.
 
 ## Task 2: Image and HF storage
 

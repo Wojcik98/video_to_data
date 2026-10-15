@@ -10,6 +10,7 @@ import tempfile
 import time
 import uuid
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from .common import INSTANCE_TYPE, ROOT, instance, remote_path, run
 
@@ -132,11 +133,19 @@ def up():
                 "nvidia-smi --query-gpu=name,memory.total --format=csv && "
                 'docker info >/dev/null && mkdir -p "$HOME/workspace" && df -h "$HOME/workspace"'
             )
-            return
+            break
         except subprocess.CalledProcessError:
             if time.monotonic() >= deadline:
                 raise
             time.sleep(10)
+    parent = shlex.quote(str(Path(workspace()).parent))
+    capacity = ssh(
+        f"mkdir -p {parent} && df -B1 --output=size -- {parent}", capture=True
+    ).stdout
+    if int(capacity.strip().splitlines()[-1]) < 500_000_000_000:
+        raise ValueError(
+            "The workspace disk is smaller than 500 GB. Resize it in Brev; no replacement VM was created."
+        )
 
 
 def remote_command(argv, *, terminal=False):
@@ -149,6 +158,20 @@ def remote_command(argv, *, terminal=False):
     )
 
 
+def git_origin(value):
+    """Use remote GitHub authentication instead of a client SSH key."""
+    if value.startswith("git@github.com:"):
+        value = "https://github.com/" + value.split(":", 1)[1]
+    parsed = urlsplit(value)
+    if parsed.scheme in ("https", "http"):
+        if parsed.username or parsed.password:
+            raise ValueError("Remove embedded credentials from the Git origin URL.")
+        return value
+    if value.startswith("git@") and ":" in value:
+        return value
+    raise ValueError("Use a network Git origin, not a path on the client.")
+
+
 def install(update=False):
     if run(["git", "status", "--porcelain"], cwd=ROOT, capture=True).stdout:
         raise ValueError("Commit or stash local changes before the first transfer.")
@@ -157,9 +180,11 @@ def install(update=False):
     ).stdout.strip()
     if not branch:
         raise ValueError("Check out a branch before the first transfer.")
-    origin = run(
-        ["git", "remote", "get-url", "origin"], cwd=ROOT, capture=True
-    ).stdout.strip()
+    origin = git_origin(
+        run(
+            ["git", "remote", "get-url", "origin"], cwd=ROOT, capture=True
+        ).stdout.strip()
+    )
     target = workspace()
     quoted = shlex.quote(target)
     if update:
@@ -249,7 +274,7 @@ def transfer(direction, source, destination):
     flags = [
         "rsync",
         "-a",
-        "--partial",
+        "--partial-dir=.rsync-partial",
         "--protect-args",
         "--safe-links",
         "--ignore-existing",

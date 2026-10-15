@@ -36,6 +36,8 @@ if Path(sys.argv[0]).name == "ssh":
     command = sys.argv[-1]
     if 'printf' in command:
         print("/home/ubuntu/workspace/video_to_data")
+    if 'df -B1' in command:
+        print(os.environ.get("DISK_BYTES", "530000000000"))
 """
         for name in ("brev", "ssh"):
             tool = self.bin / name
@@ -125,6 +127,14 @@ if Path(sys.argv[0]).name == "ssh":
         self.assertIn(["brev", "start", "v2d-l40s"], self.calls())
         self.assertFalse(any(c[:2] == ["brev", "create"] for c in self.calls()))
 
+    def test_existing_small_disk_fails_without_creating_another_vm(self):
+        self.listing("RUNNING")
+        self.env["DISK_BYTES"] = "200000000000"
+        result = self.invoke("up")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("500", result.stderr)
+        self.assertFalse(any(c[:2] == ["brev", "create"] for c in self.calls()))
+
     def test_unknown_failed_or_duplicate_listing_does_not_create(self):
         for listing, rc in [
             ("not json", "0"),
@@ -167,6 +177,18 @@ if Path(sys.argv[0]).name == "ssh":
             git_settings(raw),
             [("user.name", "An Author"), ("alias.example", "!printf 'a\\nb'\n")],
         )
+
+    def test_github_origin_uses_https_without_a_copied_private_key(self):
+        from tools.brev.cli import git_origin
+
+        self.assertEqual(
+            git_origin("git@github.com:author/repo.git"),
+            "https://github.com/author/repo.git",
+        )
+        with self.assertRaises(ValueError):
+            git_origin("https://secret-token@github.com/author/repo.git")
+        with self.assertRaises(ValueError):
+            git_origin("/home/user/local-repo")
 
 
 if __name__ == "__main__":

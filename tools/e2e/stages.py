@@ -100,6 +100,7 @@ def setup_stages(
     *,
     skip_reconstruction: bool = False,
     accept_nvidia_model_eula: bool = False,
+    skip_image_builds: bool = False,
 ) -> list[Stage]:
     """Build setup stages for reconstruction and robotic-grounding runtimes."""
     weight_command = [
@@ -184,6 +185,26 @@ def setup_stages(
         inputs=(config.input_path("mano_dir"),),
         description="build and start the reusable Isaac Lab container",
     )
+    if skip_image_builds:
+        # Keep installs and weight downloads when images came from a registry.
+        reconstruction_host = Stage(
+            reconstruction_host.name,
+            (reconstruction_host.commands[0], reconstruction_host.commands[2]),
+            inputs=reconstruction_host.inputs,
+            description="install host wrappers and fetch weights; use existing images",
+        )
+        loader = Stage(
+            loader.name,
+            (loader.commands[0],),
+            inputs=loader.inputs,
+            description="install the host loader wrapper; use the existing image",
+        )
+        robotic_grounding = Stage(
+            robotic_grounding.name,
+            (robotic_grounding.commands[1],),
+            inputs=robotic_grounding.inputs,
+            description="start the existing Robotic Grounding image",
+        )
     if skip_reconstruction:
         return [loader, robotic_grounding]
     return [reconstruction_host, loader, robotic_grounding]

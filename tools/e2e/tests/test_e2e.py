@@ -445,6 +445,41 @@ class ConfigTests(Fixture):
             )
         )
 
+    def test_setup_can_use_pulled_images_without_building(self) -> None:
+        config = self.make_ready_config("setup-pulled")
+        stages = setup_stages(config, skip_image_builds=True)
+        commands = [command.argv for stage in stages for command in stage.commands]
+        self.assertFalse(
+            any(
+                "build.py" in " ".join(argv)
+                or "build_ego_reconstruction" in " ".join(argv)
+                or "build" in argv
+                for argv in commands
+            )
+        )
+        self.assertTrue(
+            any(
+                "install_ego_reconstruction_packages.sh" in " ".join(argv)
+                for argv in commands
+            )
+        )
+        self.assertTrue(
+            any(
+                "download_ego_reconstruction_weights.sh" in " ".join(argv)
+                for argv in commands
+            )
+        )
+        self.assertTrue(any("e2e-run" in argv for argv in commands))
+
+    def test_setup_skip_image_builds_is_persisted(self) -> None:
+        config = self.make_ready_config("setup-image-option")
+        with mock.patch.object(cli.Runner, "run_many", return_value=[]):
+            result = cli.main(
+                ["setup", "--config", str(config.path), "--skip-image-builds"]
+            )
+        self.assertEqual(result, 0)
+        self.assertTrue(load_config(config.path).stage("setup")["skip_image_builds"])
+
     def test_setup_eula_acceptance_is_explicit_and_persisted(self) -> None:
         config = self.make_config("setup-eula")
         with mock.patch.object(cli.Runner, "run_many", return_value=[]) as run_many:
@@ -494,16 +529,12 @@ class ConfigTests(Fixture):
             result = cli.main([*args, "--non-headless"])
         self.assertEqual(result, 0)
         self.assertTrue(load_config(config.path).stage("evaluate")["non_headless"])
-        self.assertIn(
-            "--non-headless", run_many.call_args.args[0][-1].commands[0].argv
-        )
+        self.assertIn("--non-headless", run_many.call_args.args[0][-1].commands[0].argv)
 
         with mock.patch.object(cli.Runner, "run_many", return_value=[]) as run_many:
             result = cli.main(args)
         self.assertEqual(result, 0)
-        self.assertIn(
-            "--non-headless", run_many.call_args.args[0][-1].commands[0].argv
-        )
+        self.assertIn("--non-headless", run_many.call_args.args[0][-1].commands[0].argv)
 
     def test_doctor_requires_the_loader_image(self) -> None:
         config = self.make_ready_config("doctor-loader")
@@ -1142,16 +1173,24 @@ Path(args.save_plot_path).write_bytes(b'plot')
     def test_evaluate_non_headless_is_opt_in(self) -> None:
         config = self.make_ready_config()
         checkpoint_dir = config.host_path("finetune") / "checkpoint-1"
-        default_command = evaluate_stages(
-            config, checkpoint=checkpoint_dir, episodes=1, num_envs=1
-        )[-1].commands[0].argv
-        visible_command = evaluate_stages(
-            config,
-            checkpoint=checkpoint_dir,
-            episodes=1,
-            num_envs=1,
-            non_headless=True,
-        )[-1].commands[0].argv
+        default_command = (
+            evaluate_stages(config, checkpoint=checkpoint_dir, episodes=1, num_envs=1)[
+                -1
+            ]
+            .commands[0]
+            .argv
+        )
+        visible_command = (
+            evaluate_stages(
+                config,
+                checkpoint=checkpoint_dir,
+                episodes=1,
+                num_envs=1,
+                non_headless=True,
+            )[-1]
+            .commands[0]
+            .argv
+        )
 
         self.assertNotIn("--non-headless", default_command)
         self.assertIn("--non-headless", visible_command)

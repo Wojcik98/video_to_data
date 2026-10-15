@@ -44,11 +44,12 @@ Files: `tools/brev/{common,cli,jobs}.py`, `startup.sh`, `bootstrap.sh`, tests.
 
 Files: `tools/brev/{images,artifacts}.py`, tests, `tools/e2e/{cli,stages}.py`.
 
-- [ ] Add tests for digest checks, artifact boundaries, and setup without builds.
-- [ ] Run those tests; expect failures for the missing behavior.
-- [ ] Add GHCR build/push/pull and private HF upload/download with manifests.
-- [ ] Add `setup --skip-image-builds` while retaining installs and model downloads.
-- [ ] Run the new tests and root E2E suite; expect success. Commit with `-s`.
+- [x] Add tests for digest checks, artifact boundaries, and setup without builds.
+- [x] Observe failures for missing storage modules and the missing setup option.
+- [x] Add GHCR build/push/pull and private HF upload/download with manifests.
+- [x] Add `setup --skip-image-builds` while retaining installs and model downloads.
+- [x] Run 18 Brev tests (one opt-in tmux check), the real tmux check, and 65 root
+  E2E tests. All executed tests pass. Verify the pinned HF API in a temporary venv.
 
 ## Task 3: Commands, guide, and review
 

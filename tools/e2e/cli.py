@@ -148,6 +148,12 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--image-version")
     setup.add_argument("--gpu", type=_nonnegative_int)
     setup.add_argument(
+        "--skip-image-builds",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="use existing images; retain host installs and weight downloads",
+    )
+    setup.add_argument(
         "--skip-reconstruction",
         action="store_true",
         default=None,
@@ -610,6 +616,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                     default=False,
                 )
             )
+            skip_image_builds = bool(
+                _stage_value(
+                    args,
+                    config,
+                    "setup",
+                    "skip_image_builds",
+                    default=False,
+                )
+            )
             parameters = {
                 "mano_dir": mano,
                 "isaac_groot_dir": groot,
@@ -617,6 +632,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "gpu": gpu,
                 "skip_reconstruction": skip_reconstruction,
                 "accept_nvidia_model_eula": accept_nvidia_model_eula,
+                "skip_image_builds": skip_image_builds,
             }
             config = _configure(
                 args,
@@ -631,6 +647,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     config,
                     skip_reconstruction=skip_reconstruction,
                     accept_nvidia_model_eula=accept_nvidia_model_eula,
+                    skip_image_builds=skip_image_builds,
                 )
             )
         elif args.command == "doctor":

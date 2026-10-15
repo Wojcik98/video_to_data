@@ -18,7 +18,7 @@ export VIRTUAL_ENV="$STATE_DIR/venv"
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 export PYTHON="$VIRTUAL_ENV/bin/python"
 "$PYTHON" -m pip install --upgrade pip
-"$PYTHON" -m pip install 'huggingface_hub>=1,<2' pre-commit
+"$PYTHON" -m pip install huggingface_hub==2.2.0 pre-commit uv
 if ! command -v just >/dev/null; then
     # Install a fixed release through the remote Python environment.
     "$PYTHON" -m pip install rust-just==1.36.0

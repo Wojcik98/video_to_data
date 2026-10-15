@@ -101,6 +101,11 @@ not in the environment configuration. Inputs supplied to later stages are saved 
 
 Full setup installs the host orchestration packages, builds the reconstruction and loader images,
 downloads the reconstruction weights, and prepares the Robotic Grounding container.
+
+If you already have the required images, add `--skip-image-builds` to `setup`.
+Host package installs and model downloads still run. This option is saved with the
+run configuration. Use `--no-skip-image-builds` to enable builds again. The normal
+setup path builds images unless this option is set.
 The repository includes `reconstruction/assets/tissue_box.mp4` through Git LFS. The example below
 uses its matching task profile, which supplies the object prompt `"a tissue box"`.
 

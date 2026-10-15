@@ -27,6 +27,11 @@ with open(os.environ["TRACE"], "a") as f:
 if Path(sys.argv[0]).name == "brev" and sys.argv[1] == "ls":
     print(os.environ["LISTING"])
     sys.exit(int(os.environ.get("LIST_RC", "0")))
+if Path(sys.argv[0]).name == "brev" and sys.argv[1] == "search":
+    print(os.environ["OFFERS"])
+if Path(sys.argv[0]).name == "brev" and sys.argv[1] == "create" and "--help" not in sys.argv:
+    with open(os.environ["TRACE"], "a") as f:
+        f.write(json.dumps(["create-input", sys.stdin.read()]) + "\\n")
 if Path(sys.argv[0]).name == "ssh":
     command = sys.argv[-1]
     if 'printf' in command:
@@ -42,6 +47,18 @@ if Path(sys.argv[0]).name == "ssh":
             TRACE=str(self.trace),
             LISTING='{"workspaces": null}',
             V2D_BREV_NAME="v2d-l40s",
+            OFFERS=json.dumps(
+                [
+                    {
+                        "type": "gpu-l40s-d.1gpu-16vcpu-96gb",
+                        "gpu_count": 1,
+                        "provider": "nebius",
+                        "gpu_name": "L40S",
+                        "stoppable": True,
+                        "target_disk_gb": 500,
+                    }
+                ]
+            ),
         )
 
     def invoke(self, *args):
@@ -76,13 +93,22 @@ if Path(sys.argv[0]).name == "ssh":
     def test_new_instance_is_one_stoppable_nebius_with_500gb(self):
         result = self.invoke("up")
         self.assertEqual(result.returncode, 0, result.stderr)
-        create = next(c for c in self.calls() if c[:2] == ["brev", "create"])
-        self.assertEqual(
-            create[create.index("--type") + 1], "gpu-l40s-d.1gpu-16vcpu-96gb"
+        create = next(
+            c for c in self.calls() if c[:2] == ["brev", "create"] and "--help" not in c
         )
-        self.assertEqual(create[create.index("--min-disk") + 1], "500")
-        self.assertIn("--stoppable", create)
+        self.assertNotIn("--type", create)
+        selected = json.loads(
+            next(c[1] for c in self.calls() if c[0] == "create-input")
+        )
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(selected[0]["type"], "gpu-l40s-d.1gpu-16vcpu-96gb")
+        self.assertEqual(selected[0]["target_disk_gb"], 500)
         self.assertIn("--startup-script", create)
+
+    def test_missing_selected_offer_does_not_fall_back_to_other_gpu(self):
+        self.env["OFFERS"] = "[]"
+        self.assertNotEqual(self.invoke("up").returncode, 0)
+        self.assertFalse(any(c[:2] == ["brev", "create"] for c in self.calls()))
 
     def test_running_instance_does_not_start_or_create(self):
         self.listing("RUNNING")

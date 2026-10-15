@@ -59,20 +59,47 @@ def listing():
 def up():
     record = listing()
     if record is None:
+        offers = json.loads(
+            run(
+                [
+                    "brev",
+                    "search",
+                    "gpu",
+                    "--gpu-name",
+                    "L40S",
+                    "--provider",
+                    "nebius",
+                    "--stoppable",
+                    "--min-disk",
+                    "500",
+                    "--sort",
+                    "price",
+                    "--json",
+                ],
+                capture=True,
+            ).stdout
+        )
+        selected = [
+            offer
+            for offer in offers
+            if offer.get("type") == INSTANCE_TYPE
+            and offer.get("gpu_count") == 1
+            and offer.get("stoppable") is True
+            and offer.get("target_disk_gb") == 500
+        ]
+        if len(selected) != 1:
+            raise ValueError(
+                "The selected single-L40S, 500 GB offer is unavailable. No fallback was used."
+            )
+        # Explicit --type loses DiskGB in Brev. JSON input retains target_disk_gb.
+        help_text = run(["brev", "create", "--help"], capture=True).stdout
+        stdin_flag = ["--stdin"] if "--stdin" in help_text else []
         run(
             [
                 "brev",
                 "create",
                 instance(),
-                "--type",
-                INSTANCE_TYPE,
-                "--provider",
-                "nebius",
-                "--gpu-name",
-                "L40S",
-                "--min-disk",
-                "500",
-                "--stoppable",
+                *stdin_flag,
                 "--mode",
                 "vm",
                 "--jupyter=false",
@@ -80,7 +107,8 @@ def up():
                 "1200",
                 "--startup-script",
                 "@" + str(ROOT / "tools/brev/startup.sh"),
-            ]
+            ],
+            input=json.dumps(selected),
         )
     else:
         if record.get("instance_type") != INSTANCE_TYPE:
@@ -293,6 +321,11 @@ def main(argv=None):
     ):
         sub.add_parser(action)
     command = sub.add_parser("exec")
+    command.add_argument(
+        "--tty",
+        action="store_true",
+        help="allocate a terminal for tmux or interactive commands",
+    )
     command.add_argument("command", nargs=argparse.REMAINDER)
     for action in ("push", "pull"):
         command = sub.add_parser(action)
@@ -341,7 +374,7 @@ def main(argv=None):
             command = command[1:]
         if not command:
             parser.error("Supply a remote command after '--'.")
-        remote_command(command)
+        remote_command(command, terminal=args.tty)
     return 0
 
 

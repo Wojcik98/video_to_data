@@ -1,7 +1,7 @@
 # Contributing to Video-to-Data Reconstruction
 
 Thanks for your interest. This file is a quick map; the authoritative
-developer reference is **`reconstruction/CLAUDE.md`**, which documents the
+developer reference is **`reconstruction/AGENTS.md`**, which documents the
 host/container architecture and the typed-contract conventions every module
 follows.
 
@@ -40,7 +40,7 @@ File a GitHub issue with:
 
 - **Typed contracts:** packages communicate through dataclasses from
   `v2d_common` / the shared packages, not raw `np.ndarray`, `trimesh.Trimesh`,
-  etc. See "Typed Contracts Between Packages" in `CLAUDE.md`.
+  etc. See "Typed Contracts Between Packages" in `AGENTS.md`.
 - **Function naming:** name functions by the primary data type they operate
   on (`depth_to_pointcloud`, `mesh_render_image`), so the data flow reads
   left-to-right.
@@ -118,7 +118,7 @@ Example: `[reconstruction] v2d_moge: stabilize intrinsics across frames`.
 
 ## Architecture conventions
 
-Documented in **`reconstruction/CLAUDE.md`**. Highlights:
+Documented in **`reconstruction/AGENTS.md`**. Highlights:
 
 - Each package does one thing; shared logic is pulled up into
   `v2d_common` / `v2d_depth` / `v2d_pointcloud` / `v2d_mesh` / `v2d_smpl`

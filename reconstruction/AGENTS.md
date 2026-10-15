@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Claude Code, Codex) when working with code in this package. `CLAUDE.md` next to it only imports this file — edit this one.
 
 ## HOI object reconstruction skills
 

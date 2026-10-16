@@ -9,7 +9,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / ".local-data/brev"
-INSTANCE_TYPE = "gpu-l40s-d.1gpu-16vcpu-96gb"
 
 
 def run(argv, *, capture=False, **kwargs):

@@ -9,7 +9,6 @@ and a browser. It does not need a large GPU.
 | Setting | Default |
 | --- | --- |
 | Instance name | `v2d-l40s` |
-| Provider | Nebius |
 | Type | `gpu-l40s-d.1gpu-16vcpu-96gb` |
 | Hardware | One L40S, 48 GB VRAM, 16 vCPUs, 96 GB RAM |
 | Disk | 500 GB |
@@ -308,7 +307,7 @@ not delete files or overwrite remote code.
 ### Optional interactive Isaac Sim streaming
 
 Brev SSH tunnels carry TCP. Isaac Sim's WebRTC stream also needs UDP, so a TCP
-forward alone is insufficient. The selected Nebius offer does not advertise
+forward alone is insufficient. The selected offer does not advertise
 configurable firewall ports through Brev. Use a private VPN for this optional
 route. Browser scenes and MP4 inspection above need no VPN.
 

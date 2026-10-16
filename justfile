@@ -35,9 +35,9 @@ groot +args:
 
 # Show current L40S offers with the required disk size.
 brev-offers:
-    @brev search gpu --gpu-name L40S --provider nebius --stoppable --min-disk 500 --sort price --wide
+    @brev search gpu --gpu-name L40S --stoppable --min-disk 500 --sort price --wide
 
-# Create or resume the configured Nebius L40S VM and check SSH/GPU/Docker access.
+# Create or resume the configured L40S VM and check SSH/GPU/Docker access.
 brev-up:
     @"${PYTHON:-python3}" -m tools.brev.cli up
 

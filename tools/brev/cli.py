@@ -12,7 +12,7 @@ import uuid
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from .common import INSTANCE_TYPE, ROOT, instance, remote_path, run
+from .common import ROOT, instance, remote_path, run
 
 
 def ssh(command, *, capture=False, terminal=False):
@@ -57,6 +57,35 @@ def listing():
     return matches[0] if matches else None
 
 
+def choose_offer(offers):
+    """List the matching offers and let the user pick one by number."""
+    if not sys.stdin.isatty():
+        raise ValueError(
+            f"{len(offers)} offers match and stdin is not interactive. No instance was created."
+        )
+    print("Available offers:")
+    for number, offer in enumerate(offers, 1):
+        details = ", ".join(
+            f"{key}={offer[key]}"
+            for key in (
+                "cloud",
+                "provider",
+                "location",
+                "region",
+                "price_per_hour",
+                "price",
+                "target_disk_gb",
+            )
+            if key in offer
+        )
+        print(f"  {number}. {offer.get('type')}  {details}")
+    while True:
+        answer = input(f"Select an offer [1-{len(offers)}]: ").strip()
+        if answer.isdigit() and 1 <= int(answer) <= len(offers):
+            return offers[int(answer) - 1]
+        print("Enter one of the listed numbers.")
+
+
 def up():
     record = listing()
     if record is None:
@@ -68,8 +97,6 @@ def up():
                     "gpu",
                     "--gpu-name",
                     "L40S",
-                    "--provider",
-                    "nebius",
                     "--stoppable",
                     "--min-disk",
                     "500",
@@ -83,15 +110,15 @@ def up():
         selected = [
             offer
             for offer in offers
-            if offer.get("type") == INSTANCE_TYPE
-            and offer.get("gpu_count") == 1
+            if offer.get("gpu_count") == 1
             and offer.get("stoppable") is True
             and offer.get("target_disk_gb") == 500
         ]
-        if len(selected) != 1:
+        if not selected:
             raise ValueError(
-                "The selected single-L40S, 500 GB offer is unavailable. No fallback was used."
+                "No single-L40S, 500 GB offer is available. No fallback was used."
             )
+        selected = [choose_offer(selected)]
         # Explicit --type loses DiskGB in Brev. JSON input retains target_disk_gb.
         help_text = run(["brev", "create", "--help"], capture=True).stdout
         stdin_flag = ["--stdin"] if "--stdin" in help_text else []
@@ -112,10 +139,6 @@ def up():
             input=json.dumps(selected),
         )
     else:
-        if record.get("instance_type") != INSTANCE_TYPE:
-            raise ValueError(
-                "The existing instance is not the selected Nebius L40S type."
-            )
         status = str(record.get("status", "")).upper()
         if status in ("STOPPED", "OFF", "PAUSED"):
             run(["brev", "start", instance()])
